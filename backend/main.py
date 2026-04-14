@@ -8,7 +8,9 @@ from schemas import AlgorithmResult, SimulationRequest, SimulationResponse
 app = FastAPI()
 
 # Configure CORS
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
+# We read origins from ENV. If not set, we default to "*" for flexibility.
+raw_origins = os.getenv("ALLOWED_ORIGINS", "*")
+allowed_origins = [o.strip() for o in raw_origins.split(",")]
 
 app.add_middleware(
     CORSMiddleware,
@@ -29,9 +31,10 @@ def _build_result(steps, faults, total_pages):
 
 @app.post("/simulate", response_model=SimulationResponse)
 async def simulate(request: SimulationRequest):
-    fifo_steps, fifo_faults = algorithms.fifo_simulation(request.pages, request.capacity)
-    lru_steps, lru_faults = algorithms.lru_simulation(request.pages, request.capacity)
-    optimal_steps, optimal_faults = algorithms.optimal_simulation(request.pages, request.capacity)
+    # Use the correct function names from algorithms.py
+    fifo_steps, fifo_faults = algorithms.get_fifo_steps(request.pages, request.capacity)
+    lru_steps, lru_faults = algorithms.get_lru_steps(request.pages, request.capacity)
+    optimal_steps, optimal_faults = algorithms.get_optimal_steps(request.pages, request.capacity)
 
     total_pages = len(request.pages)
 
@@ -43,4 +46,6 @@ async def simulate(request: SimulationRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # Make sure to listen on 0.0.0.0 for Docker/Render
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
