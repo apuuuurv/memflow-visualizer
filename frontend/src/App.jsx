@@ -18,7 +18,8 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/simulate";
+const API_BASE_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "http://127.0.0.1:8000";
+const API_URL = `${API_BASE_URL}/simulate`;
 const FIFO_ANOMALY_PAGES = "1, 2, 3, 4, 1, 2, 5, 1, 2, 3, 4, 5";
 const THEME_KEY = "memflow-theme";
 
